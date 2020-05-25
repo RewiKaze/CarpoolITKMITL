@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carpool IT KMITL</title>
+    <link href="https://fonts.googleapis.com/css?family=Prompt&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="shortcut icon" href="taxi.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="taxi.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="taxi.png">
+    <link rel="apple-touch-icon" href="taxi.png">
+    <meta name="apple-mobile-web-app-title" content="Carpool IT KMITL">
+</head>
+
+<body onload="load_table()">
+    <mobile>
+        <div class="mobile-status-bar">
+            <img src="https://i.imgur.com/XSqz2K4.png" alt="">
+        </div>
+        <div class='title' style="background-color: cornflowerblue;">Carpool IT KMITL</div>
+        <div class='mobile-container'>
+            <div id="main">
+                <h3 style="margin-top:5px">
+                    <div id="clockbox"></div>
+                </h3>
+                <div style='display: inline-block; width: 100%;'>
+                    <h3 style="margin:0px;">
+                        <div class='title-list'>List Car :</div>
+                    </h3>
+                    <div class='add-button' onclick='mockupClick("main", "second")'>+</div>
+                </div>
+                <div id="list-car-div"></div>
+            </div>
+            <div id="second" class='page'>
+                <h2 style="display: inline-block;margin: 0px;">ลงทะเบียบรถ</h2>
+                <div class="back-button" onclick='mockupClick("second", "main")'>Back</div>
+                <h3>ป้ายทะเบียนรถ</h3>
+                <input type="text" id="numberCar">
+                <h3>ประเภทรถ</h3>
+                <input type="text" id="type">
+                <h3>ต้นทาง</h3>
+                <input type="text" id="pickup">
+                <h3>ปลายทาง</h3>
+                <input type="text" id="destination">
+                <button onclick="addDataTable()">OK</button>
+            </div>
+            <div id="third" class='page'></div>
+            <div id="forth" class='page'>
+                <h2 style="display: inline-block;margin: 0px;">เพิ่มรายชื่อ</h2>
+                <div class="back-button" onclick='mockupClick("forth", "third")'>Back</div>
+                <h3>ชื่อ</h3>
+                <input type="text" id="namePeople">
+                <h3>เบอร์ติดต่อ</h3>
+                <input type="text" id="numberPeople">
+                <button onclick="addPeople()">OK</button>
+            </div>
+
+    </mobile>
+
+
+    <!--Link JS Script-->
+    <script src="date.js"></script>
+    <script>
+        if (localStorage.getItem("saveData") != null) {
+            var data = JSON.parse(localStorage.getItem("saveData"))
+        } else {
+            var data = []
+        }
+        //var data = [{ carNum: "กศ 1234", typeCar: "รถเก๋ง", firstDes: "คณะ IT", lastDes: "Mega Bangna", nameList: [{ name: "Tuktik", phone: "081111111" }] }]
+        var rows = document.getElementsByTagName("tr");
+        var indexArray;
+        function addDataTable() {
+            var numInput = document.getElementById('numberCar')
+            var typeInput = document.getElementById('type')
+            var pickupInput = document.getElementById('pickup')
+            var desInput = document.getElementById('destination')
+            if (numInput.value != "" && typeInput.value != "" && pickupInput.value != "" && desInput.value != "") {
+                data.push({ carNum: numInput.value, typeCar: typeInput.value, firstDes: pickupInput.value, lastDes: desInput.value, nameList: [] })
+                load_table()
+                mockupClick("second", "main")
+                numInput.value = ""
+                typeInput.value = ""
+                pickupInput.value = ""
+                desInput.value = ""
+                localStorage.setItem("saveData", JSON.stringify(data))
+            } else {
+                alert("กรุณาใส่ข้อมูลให้ครบ")
+            }
+        }
+        function load_table() {
+
+            var table_data = "<table id='list-car'><thead><th>ป้ายทะเบียนรถ</th><th>ประเภทรถ</th><th>ต้นทาง</th><th>ปลายทาง</th></thead>"
+            for (var i = 0; i < data.length; i++) {
+                table_data += "<tr style='cursor:pointer;'>"
+                table_data += "<td>" + data[i].carNum + "</td>"
+                table_data += "<td>" + data[i].typeCar + "</td>"
+                table_data += "<td>" + data[i].firstDes + "</td>"
+                table_data += "<td>" + data[i].lastDes + "</td>"
+                table_data += "</tr>"
+            }
+            table_data += "</table>"
+            document.getElementById("list-car-div").innerHTML = table_data
+            for (var j = 1; j < rows.length; j++) {
+                rows[j].onclick = function () {
+                    //console.log(this.cells[0].innerHTML);
+                    console.log(data.find(({ carNum }) => carNum == this.cells[0].innerHTML))
+                    showDescription("main", "third", data.find(({ carNum }) => carNum == this.cells[0].innerHTML))
+                }
+            }
+            //Reset Data when Midnight
+            var today = new Date();
+            var midnight = new Date();
+
+            midnight.setDate(today.getDate() + 1)
+            midnight.setHours(0)
+            midnight.setMinutes(0)
+
+            setTimeout(function () {
+                // If the date has changed, set the date to the new date, and refresh stuff.
+
+                localStorage.removeItem("saveData")
+                load_table();
+            }, midnight.getTime() - today.getTime())
+        }
+        function mockupClick(pageToHide, pageToShow) {
+            document.querySelector('#' + pageToHide).style.display = "none";
+            document.querySelector('#' + pageToShow).style.display = "block";
+        }
+        function showDescription(pageToHide, pageToShow, data_sent) {
+            mockupClick(pageToHide, pageToShow);
+            var indexData = data.indexOf(data_sent)
+            console.log(indexData);
+            var desInfo = '<h2 style="display: inline-block;margin: 0px;">รายละเอียด</h2><div class="back-button" onclick="mockupClick(`third`, `main`)">Back</div><br>'
+            desInfo += "<h3 class='oneline'>ป้ายทะเบียน :</h3><h3 class='oneline'>&ensp;" + data_sent.carNum + "</h3><br>"
+            desInfo += "<h3 class='oneline'>ประเภทรถ :</h3><h3 class='oneline'>&ensp;" + data_sent.typeCar + "</h3><br>"
+            desInfo += "<h3 class='oneline'>ต้นทาง :</h3><h3 class='oneline'>&ensp;" + data_sent.firstDes + "</h3><br>"
+            desInfo += "<h3 class='oneline'>ปลายทาง :</h3><h3 class='oneline'>&ensp;" + data_sent.lastDes + "</h3><br>"
+            desInfo += "<h3 class='oneline'>รายชื่อ :</h3><div class='add-button' onclick='sentIndex(`third`, `forth`,`" + indexData + "`)'>+</div>"
+            desInfo += "<table id='list-people'><thead><th>ชื่อ</th><th>เบอร์ติดต่อ</th></thead>"
+            //console.log(data_sent.nameList.length)
+            //console.log(data_sent.nameList[0].name)
+            for (var each = 0; each < data_sent.nameList.length; each++) {
+                desInfo += "<tr>"
+                desInfo += "<td>" + data_sent.nameList[each].name + "</td>"
+                desInfo += "<td>" + data_sent.nameList[each].phone + "</td>"
+                desInfo += "</tr>"
+            }
+            document.getElementById("third").innerHTML = desInfo
+        }
+
+        function addPeople() {
+            var nameInput = document.getElementById("namePeople").value;
+            var numberInput = document.getElementById("numberPeople").value;
+            var indexData = data.indexOf(data[indexArray])
+            if (nameInput != "" && numberInput != "") {
+                var now = new Date().getTime();
+
+                data[indexArray].nameList.push({ name: nameInput, phone: numberInput })
+                var desInfo = '<h2 style="display: inline-block;margin: 0px;">รายละเอียด</h2><div class="back-button" onclick="mockupClick(`third`, `main`)">Back</div><br>'
+                desInfo += "<h3 class='oneline'>ป้ายทะเบียน :</h3><h3 class='oneline'>&ensp;" + data[indexArray].carNum + "</h3><br>"
+                desInfo += "<h3 class='oneline'>ประเภทรถ :</h3><h3 class='oneline'>&ensp;" + data[indexArray].typeCar + "</h3><br>"
+                desInfo += "<h3 class='oneline'>ต้นทาง :</h3><h3 class='oneline'>&ensp;" + data[indexArray].firstDes + "</h3><br>"
+                desInfo += "<h3 class='oneline'>ปลายทาง :</h3><h3 class='oneline'>&ensp;" + data[indexArray].lastDes + "</h3><br>"
+                desInfo += "<h3 class='oneline'>รายชื่อ :</h3><div class='add-button' onclick='sentIndex(`third`, `forth`,`" + indexData + "`)'>+</div>"
+                desInfo += "<table id='list-people'><thead><th>ชื่อ</th><th>เบอร์ติดต่อ</th></thead>"
+                //console.log(data_sent.nameList.length)
+                //console.log(data_sent.nameList[0].name)
+                for (var each = 0; each < data[indexArray].nameList.length; each++) {
+                    desInfo += "<tr>"
+                    desInfo += "<td>" + data[indexArray].nameList[each].name + "</td>"
+                    desInfo += "<td>" + data[indexArray].nameList[each].phone + "</td>"
+                    desInfo += "</tr>"
+                }
+                document.getElementById("third").innerHTML = desInfo
+                mockupClick("forth", "third")
+                document.getElementById("namePeople").value = ""
+                document.getElementById("numberPeople").value = ""
+                localStorage.setItem("saveData", JSON.stringify(data))
+            } else {
+                alert("กรุณาใส่ข้อมูลให้ครบ")
+            }
+
+        }
+        function sentIndex(pageToHide, pageToShow, index) {
+            mockupClick(pageToHide, pageToShow);
+            indexArray = index
+        }
+
+    </script>
+</body>
+
+</html>
